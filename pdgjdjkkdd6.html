@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>𝐒𝐏𝐄𝐄𝐃_𝐗 VIP PANEL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    /* Global Reset & Body */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      background: #000;
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden; /* Prevent body scroll */
+      color: #00ffcc;
+      user-select: none;
+    }
+
+    /* Matrix Background */
+    #matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -2; /* Behind everything */
+    }
+
+    /* Particle Containers for various sections */
+    .particle-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: hidden; /* Keep particles within the container */
+        z-index: 0; /* Particles inside the box but behind content */
+    }
+    .orb {
+        position: absolute;
+        background: radial-gradient(circle, rgba(255,0,0,0.7) 0%, rgba(255,153,0,0.7) 14%, rgba(255,255,0,0.7) 28%, rgba(0,255,0,0.7) 42%, rgba(0,0,255,0.7) 56%, rgba(75,0,130,0.7) 70%, rgba(143,0,255,0.7) 84%, rgba(255,255,255,0) 100%);
+        border-radius: 50%;
+        animation: floatOrb 15s infinite ease-in-out alternate, fadeOrb 8s infinite ease-in-out;
+        opacity: 0;
+    }
+    @keyframes floatOrb {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(50px, -30px); }
+        50% { transform: translate(100px, 50px); }
+        75% { transform: translate(-50px, 80px); }
+        100% { transform: translate(0, 0); }
+    }
+    @keyframes fadeOrb {
+        0%, 100% { opacity: 0; }
+        20%, 80% { opacity: 0.6; } /* Slightly more visible */
+    }
+
+    /* Main Container Styles */
+    .container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 380px;
+      padding: 35px;
+      background: rgba(0, 0, 0, 0.92);
+      border-radius: 15px;
+      box-shadow: 0 0 50px rgba(0, 255, 204, 0.8);
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #00ffcc;
+      font-weight: bold;
+      user-select: text;
+      max-height: 90vh;
+      overflow-y: auto; /* Enable scroll if content overflows */
+      -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+      scrollbar-width: none; /* Hide scrollbar for Firefox */
+      transition: opacity 0.5s ease-in-out;
+      z-index: 1; /* Containers are above matrix */
+      position: relative; /* Needed for absolute positioning of particle-container */
+    }
+    /* Specific container borders/shadows */
+    #panel, #statusPage, #loadingDetails {
+      border: 2px solid #00ff00; /* Green border */
+      box-shadow: 0 0 30px rgba(0, 255, 0, 0.6); /* Green glow */
+    }
+    .container::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for Chrome/Safari */
+    }
+
+    /* Input, Select, Button Styles */
+    input, select, button {
+      width: 100%;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 10px;
+      border: 3px solid #00ffcc;
+      background: #000;
+      color: #00ffcc;
+      font-size: 18px;
+      font-weight: bold;
+      font-family: 'Share Tech Mono', monospace;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      position: relative; /* Ensure inputs/buttons are above particles */
+      z-index: 1;
+    }
+    input::placeholder {
+      color: #008b74;
+      font-weight: bold;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+    }
+    button {
+      cursor: pointer;
+      background: #00ffcc;
+      color: #000;
+      border: none;
+      transition: background-color 0.3s ease, color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      background: #00ffff;
+      color: #000;
+      transform: scale(1.02);
+      box-shadow: 0 0 15px #00ffff;
+    }
+
+    /* Result Display Box */
+    .result {
+      margin-top: 25px;
+      background: #0d0d0d;
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
+      white-space: pre-wrap; /* Preserve whitespace and allow wrapping */
+      font-size: 16px;
+      min-height: 90px;
+      border: 2px dashed #00ffcc;
+      text-align: left;
+      position: relative; /* Ensure result box is above particles */
+      z-index: 1;
+    }
+
+    /* Glitch Text Effect */
+    .glitch {
+      position: relative;
+      color: #00ffcc;
+      font-size: 36px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      animation: glitch 1s infinite;
+      text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffff;
+      z-index: 1; /* Ensure glitch text is above particles */
+    }
+    @keyframes glitch {
+      0% {
+        text-shadow: 5px 0 #ff00c8, -5px 0 #00fff7, 0 0 20px #00ffcc;
+        transform: skew(20deg);
+      }
+      25% {
+        text-shadow: -5px 0 #ff00c8, 5px 0 #00fff7, 0 0 20px #00ffcc;
+        transform: skew(-15deg);
+      }
+      50% {
+        text-shadow: 5px 0 #ff00c8, -5px 0 #00fff7, 0 0 20px #00ffcc;
+        transform: skew(10deg);
+      }
+      75% {
+        text-shadow: -5px 0 #ff00c8, 5px 0 #00fff7, 0 0 20px #00ffcc;
+        transform: skew(-8deg);
+      }
+      100% {
+        text-shadow: 5px 0 #ff00c8, -5px 0 #00fff7, 0 0 20px #00ffcc;
+        transform: skew(20deg);
+      }
+    }
+
+    /* Full Screen Glitch for Wrong Password */
+    .full-screen-glitch-wrong {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 90px;
+        color: #ff00c8;
+        font-weight: bold;
+        text-shadow: 0 0 40px #00fff7, 0 0 80px #ff00c8;
+        animation: cinematicGlitchWrong 0.15s infinite alternate;
+        overflow: hidden;
+    }
+    .full-screen-glitch-wrong span {
+        display: block;
+        margin: 10px 0;
+    }
+    @keyframes cinematicGlitchWrong {
+      0% {
+        transform: translate(0, 0) scale(1) skew(0deg);
+        opacity: 1;
+        filter: hue-rotate(0deg);
+        text-shadow: 8px 0 #ff00c8, -8px 0 #00fff7;
+      }
+      25% {
+        transform: translate(10px, -10px) scale(1.05) skew(10deg);
+        opacity: 0.9;
+        filter: hue-rotate(25deg);
+        text-shadow: -8px 8px #ff00c8, 8px -8px #00fff7;
+      }
+      50% {
+        transform: translate(-10px, 10px) scale(0.95) skew(-10deg);
+        opacity: 0.8;
+        filter: hue-rotate(50deg);
+        text-shadow: 15px 0 #ff00c8, -15px 0 #00fff7;
+      }
+      75% {
+        transform: translate(15px, -15px) scale(1.08) skew(15deg);
+        opacity: 0.7;
+        filter: hue-rotate(75deg);
+        text-shadow: -15px 15px #ff00c8, 15px -15px #00fff7;
+      }
+      100% {
+        transform: translate(-15px, 15px) scale(0.92) skew(-15deg);
+        opacity: 0.6;
+        filter: hue-rotate(100deg);
+        text-shadow: 8px 0 #ff00c8, -8px 0 #00fff7;
+      }
+    }
+
+    /* Full Screen Glitch for Correct Password */
+    .full-screen-glitch-correct {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 90px;
+        color: #00ffcc;
+        font-weight: bold;
+        text-shadow: 0 0 40px #00ffff, 0 0 80px #00ffcc;
+        animation: cinematicGlitchCorrect 0.12s infinite alternate;
+        overflow: hidden;
+    }
+    .full-screen-glitch-correct span {
+        display: block;
+        margin: 10px 0;
+    }
+    @keyframes cinematicGlitchCorrect {
+      0% {
+        transform: translate(0, 0) scale(1) skew(0deg);
+        opacity: 1;
+        filter: hue-rotate(0deg);
+        text-shadow: 8px 0 #00ffcc, -8px 0 #00ffff;
+      }
+      25% {
+        transform: translate(8px, -8px) scale(1.03) skew(8deg);
+        opacity: 0.95;
+        filter: hue-rotate(10deg);
+        text-shadow: -8px 8px #00ffcc, 8px -8px #00ffff;
+      }
+      50% {
+        transform: translate(-8px, 8px) scale(0.97) skew(-8deg);
+        opacity: 0.9;
+        filter: hue-rotate(20deg);
+        text-shadow: 12px 0 #00ffcc, -12px 0 #00ffff;
+      }
+      75% {
+        transform: translate(12px, -12px) scale(1.05) skew(12deg);
+        opacity: 0.85;
+        filter: hue-rotate(30deg);
+        text-shadow: -12px 12px #00ffcc, 12px -12px #00ffff;
+      }
+      100% {
+        transform: translate(-12px, 12px) scale(0.95) skew(-12deg);
+        opacity: 0.8;
+        filter: hue-rotate(40deg);
+        text-shadow: 8px 0 #00ffcc, -8px 0 #00ffff;
+      }
+    }
+
+    /* Credit Text */
+    .credit {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      color: #00ffcc;
+      font-weight: bold;
+      user-select: none;
+      text-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffff;
+      letter-spacing: 2px;
+      animation: neonGlow 1.5s ease-in-out infinite alternate;
+      z-index: 4; /* Ensure credit is above particles and containers */
+    }
+    @keyframes neonGlow {
+      0% {
+        text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 30px #00ffcc, 0 0 40px #00ffff, 0 0 70px #00ffff, 0 0 80px #00ffff;
+      }
+      100% {
+        text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc, 0 0 15px #00ffcc, 0 0 20px #00ffff, 0 0 35px #00ffff, 0 0 40px #00ffff;
+      }
+    }
+
+    /* Green Particles for Credit Section */
+    #credit-particles {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%; /* Cover full height to allow particles to float from bottom */
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 0; /* Below everything */
+    }
+    .green-particle {
+        position: absolute;
+        background-color: rgba(0, 255, 0, 0.7); /* Green color */
+        border-radius: 50%;
+        opacity: 0;
+        animation: floatGreenParticle 6s infinite ease-out;
+    }
+    @keyframes floatGreenParticle {
+        0% { transform: translate(var(--start-x), var(--start-y)) scale(0.5); opacity: 0; }
+        20% { opacity: 0.8; }
+        100% { transform: translate(var(--end-x), var(--end-y)) scale(1.5); opacity: 0; }
+    }
+
+    /* Loading Bar Style */
+    #loadBar, #likeLoadBar {
+      font-family: monospace;
+      font-size: 24px;
+      margin-top: 20px;
+      letter-spacing: 5px;
+      user-select: none;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+    }
+
+    /* Profile Picture Container */
+    .profile-img-container {
+      margin-bottom: 25px;
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #00ffcc;
+      box-shadow: 0 0 20px #00ffff;
+      animation: floatImage 3s ease-in-out infinite alternate;
+      margin-left: auto;
+      margin-right: auto;
+      z-index: 1;
+    }
+    .profile-img-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    @keyframes floatImage {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    /* Loading Details Page Specifics */
+    #loadingDetails {
+        background: rgba(0, 0, 0, 0.92) url('https://files.catbox.moe/rqejf0.jpeg') no-repeat center center; /* FREEFIRE IMAGE HERE */
+        background-size: cover;
+        backdrop-filter: blur(5px); /* Optional: blur the background image slightly */
+    }
+    #loadingDetails .welcome-text {
+        font-size: 28px;
+        color: #00ffcc;
+        margin-bottom: 20px;
+        text-shadow: 0 0 15px #00ffcc;
+        position: relative;
+        z-index: 1;
+        animation: floatText 3s ease-in-out infinite alternate;
+    }
+    @keyframes floatText {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0px); }
+    }
+    #loadingDetails .instructions {
+        font-size: 16px;
+        color: #00ffff;
+        text-align: left;
+        margin-bottom: 20px;
+        line-height: 1.6;
+        position: relative; z-index: 1;
+    }
+    #loadingDetails .disclaimer {
+        font-size: 14px;
+        color: #ff00c8;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px dashed #ff00c8;
+        background-color: rgba(255, 0, 200, 0.1);
+        position: relative; z-index: 1;
+    }
+    #loadingDetails button {
+        margin-top: 30px;
+        background: #00ffcc;
+        color: #000;
+        border: none;
+        padding: 15px 30px;
+        font-size: 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.1s ease;
+        position: relative; z-index: 1;
+    }
+    #loadingDetails button:hover {
+        background: #00ffff;
+        transform: scale(1.05);
+    }
+
+    /* Hacker text classes */
+    .hacker-success { color: #00ff00; text-shadow: 0 0 5px #00ff00; }
+    .hacker-text { color: #00ffff; text-shadow: 0 0 5px #00ffff; }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+<audio id="audioLogin" src="https://files.catbox.moe/vm18ra.mp3" loop></audio>
+<audio id="audioLoading" src="https://files.catbox.moe/ulvfuf.mp3" loop></audio>
+<audio id="audioWrongPass" src="https://files.catbox.moe/m6d03c.mp3"></audio>
+<audio id="audioPanel" src="https://files.catbox.moe/qgkgh4.mp3" loop></audio>
+
+<div class="container" id="login">
+  <div class="glitch">VIP ACCESS</div>
+  <input id="pass" type="password" placeholder="Enter Password" autocomplete="off">
+  <button onclick="checkPass()">UNLOCK</button>
+  <div id="msg" class="result"></div>
+</div>
+
+<div class="container" id="loading" style="display:none;">
+  <div class="glitch">𝐒𝐏𝐄𝐄𝐃_𝐗 𝐋𝐎𝐀𝐃𝐈𝐍𝐆...</div>
+  <pre id="loadBar" class="result">[▒▒▒▒▒▒▒▒▒▒] 0%</pre>
+</div>
+
+<div class="container" id="loadingDetails" style="display:none;">
+  <div class="particle-container" id="loadingDetails-orbs"></div>
+  <div class="glitch welcome-text">WELCOME BOSS!</div>
+  <div class="instructions">
+    <p>How to use:</p>
+    <p>1. Enter your Free Fire UID in the UID box.</p>
+    <p>2. Select your server from the Region option (Bangladesh/India).</p>
+    <p>3. Click the "🚀 SEND LIKES" button to send likes.</p>
+    <p>4. Check the status page to view the like status.</p>
+    <p>5. If you face any issues, click the "☎️ CONTACT ADMIN" button.</p>
+  </div>
+  <div class="disclaimer">
+    <b>DISCLAIMER: This tool is for entertainment purposes only. Any illegal activity is not supported. The user is solely responsible for all usage.</b>
+  </div>
+  <button onclick="goToPanelFromDetails()">START</button>
+</div>
+
+<div class="container" id="likeLoading" style="display:none;">
+  <div class="glitch">𝐒𝐄𝐍𝐃𝐈𝐍𝐆 𝐋𝐈𝐊𝐄𝐒...</div>
+  <pre id="likeLoadBar" class="result">[▒▒▒▒▒▒▒▒▒▒] 0%</pre>
+</div>
+
+<div class="container" id="panel" style="display:none;">
+  <div class="particle-container" id="panel-orbs"></div>
+  <div class="profile-img-container">
+    <img src="https://files.catbox.moe/xfk81u.png" alt="NIROB_BBZ">
+  </div>
+  <div class="glitch">👑 𝐒𝐏𝐄𝐄𝐃_𝐗 𝐕𝐈𝐏 𝐋𝐈𝐊𝐄 𝐏𝐀𝐍𝐄𝐋</div>
+  <input type="text" id="uid" placeholder="Enter Free Fire UID" autocomplete="off">
+  <select id="regionSelect" onchange="setRegion()">
+    <option value="">Select Region</option>
+    <option value="bd">Bangladesh</option>
+    <option value="ind">India</option>
+  </select>
+  <input type="text" id="region" placeholder="Region (Selected Automatically)" readonly>
+  <button onclick="handleSendLike()">🚀 SEND LIKES</button>
+  <button onclick="contactAdmin()">☎️ CONTACT ADMIN</button>
+</div>
+
+<div class="container" id="statusPage" style="display:none;">
+  <div class="particle-container" id="status-orbs"></div>
+  <div class="glitch">📊 𝐋𝐈𝐊𝐄 𝐒𝐓𝐀𝐓𝐔𝐒</div>
+  <div id="statusResult" class="result"></div>
+  <button onclick="goToPanel()">⬅️ 𝐆𝐎 𝐁𝐀𝐂𝐊</button>
+</div>
+
+<div class="credit">🔥 Created by @NIROB_BBZ 🔥</div>
+<div id="credit-particles"></div>
+
+<script>
+  // --- CONFIGURATION ---
+  const TELEGRAM_BOT_TOKEN = '7673361592:AAGAUUng4PyQ6AjaSE4DKjYC5j2mtxT4DxA'; // 🚨🚨🚨 তোমার টেলিগ্রাম বট টোকেন 🚨🚨🚨
+  const TELEGRAM_CHAT_ID = '7224513731'; // 🚨🚨🚨 তোমার টেলিগ্রাম চ্যাট আইডি 🚨🚨🚨
+  const API_BASE_URL = 'https://mod-xupdate.vercel.app/like'; // 🚨🚨🚨 তোমার API বেস URL 🚨🚨🚨
+
+  // --- AUDIO ELEMENTS ---
+  const audioLogin = document.getElementById('audioLogin');
+  const audioLoading = document.getElementById('audioLoading');
+  const audioWrongPass = document.getElementById('audioWrongPass');
+  const audioPanel = document.getElementById('audioPanel');
+
+  let currentAudio = null;
+  let audioInitiated = false; // Flag to track if audio has been initiated by user interaction
+
+  // Function to play audio safely
+  function playAudio(audioElement) {
+    if (currentAudio && currentAudio !== audioElement) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+    // Only attempt to play if audio interaction has occurred or if it's the wrong pass audio (which is short)
+    if (audioInitiated || audioElement === audioWrongPass) {
+        audioElement.play().catch(e => {
+            console.log("Audio play failed:", e);
+        });
+        currentAudio = audioElement;
+    } else {
+        // Defer playing until user interaction, but set it as current
+        currentAudio = audioElement;
+    }
+  }
+
+  // Function to stop audio
+  function stopAudio(audioElement) {
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+      if (currentAudio === audioElement) {
+        currentAudio = null;
+      }
+    }
+  }
+
+  // Event listener for the first user interaction (any click/keydown) to enable audio
+  document.addEventListener('click', () => {
+    if (!audioInitiated) {
+        audioLogin.play().catch(e => console.log("Initial audio play failed (click):", e));
+        audioInitiated = true;
+    }
+  }, { once: true }); // Only run this once
+
+  document.addEventListener('keydown', () => {
+    if (!audioInitiated) {
+        audioLogin.play().catch(e => console.log("Initial audio play failed (keydown):", e));
+        audioInitiated = true;
+    }
+  }, { once: true }); // Only run this once
+
+
+  // --- MATRIX BACKGROUND EFFECT ---
+  const mCanvas = document.getElementById("matrix");
+  const mCtx = mCanvas.getContext("2d");
+  mCanvas.width = window.innerWidth;
+  mCanvas.height = window.innerHeight;
+
+  const matrixSymbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]:;<>,.?/\\|`~".split("");
+  const matrixFontSize = 18;
+  const matrixColumns = Math.floor(mCanvas.width / matrixFontSize);
+  const matrixDrops = Array.from({length: matrixColumns}, () => Math.random() * mCanvas.height / matrixFontSize);
+
+  function drawMatrix() {
+    mCtx.fillStyle = "rgba(0, 0, 0, 0.08)";
+    mCtx.fillRect(0, 0, mCanvas.width, mCtx.height);
+
+    mCtx.fillStyle = "#00ffcc";
+    mCtx.font = matrixFontSize + "px monospace";
+
+    for (let i = 0; i < matrixDrops.length; i++) {
+      const text = matrixSymbols[Math.floor(Math.random() * matrixSymbols.length)];
+      mCtx.fillText(text, i * matrixFontSize, matrixDrops[i] * matrixFontSize);
+
+      if (matrixDrops[i] * matrixFontSize > mCanvas.height && Math.random() > 0.98) {
+        matrixDrops[i] = 0;
+      }
+      matrixDrops[i] += 0.8;
+    }
+  }
+  setInterval(drawMatrix, 30);
+
+  // --- RAINBOW ORBS (Particle System for Panels) ---
+  let orbIntervals = {}; // To store intervals for different containers
+
+  function createOrb(container) {
+      const orb = document.createElement('div');
+      orb.className = 'orb';
+      const size = Math.random() * 20 + 10; // Size between 10px and 30px
+      orb.style.width = `${size}px`;
+      orb.style.height = `${size}px`;
+      orb.style.left = `${Math.random() * 100}%`;
+      orb.style.top = `${Math.random() * 100}%`;
+      orb.style.animationDuration = `${Math.random() * 10 + 10}s, ${Math.random() * 5 + 3}s`; // Different animation speeds
+      orb.style.animationDelay = `-${Math.random() * 8}s`; // Staggered start
+      container.appendChild(orb);
+
+      // Remove orb after its animation cycle to prevent too many elements
+      setTimeout(() => {
+          orb.remove();
+      }, parseFloat(orb.style.animationDuration) * 1000 * 2); // Ensure it's removed after two cycles of floatOrb
+  }
+
+  function startOrbs(containerElementId, intervalIdName, count = 20) {
+    const container = document.getElementById(containerElementId);
+    if (!container) {
+        console.error(`Container with ID ${containerElementId} not found for orbs.`);
+        return;
+    }
+    if (!orbIntervals[intervalIdName]) { // Prevent multiple intervals
+        // Create initial batch of orbs for a 'filled' look
+        for (let i = 0; i < count; i++) {
+            createOrb(container);
+        }
+        orbIntervals[intervalIdName] = setInterval(() => createOrb(container), 800); // Continue creating
+    }
+  }
+
+  function stopOrbs(containerElementId, intervalIdName) {
+    const container = document.getElementById(containerElementId);
+    if (!container) return;
+    clearInterval(orbIntervals[intervalIdName]);
+    orbIntervals[intervalIdName] = null; // Reset interval ID
+    container.innerHTML = ''; // Clear existing orbs
+  }
+
+  // --- GREEN PARTICLES (For Credit Section) ---
+  const creditParticlesContainer = document.getElementById('credit-particles');
+  function createGreenParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'green-particle';
+      const size = Math.random() * 5 + 2; // Size between 2px and 7px
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+
+      const creditElement = document.querySelector('.credit');
+      if (!creditElement) return;
+
+      const creditRect = creditElement.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      const startX = (creditRect.left + creditRect.width / 2) - (size / 2) + (Math.random() - 0.5) * creditRect.width; 
+      const startY = creditRect.top + creditRect.height / 2 + (Math.random() * 20); 
+
+      particle.style.setProperty('--start-x', `${startX}px`);
+      particle.style.setProperty('--start-y', `${startY}px`);
+
+      const endX = startX + (Math.random() - 0.5) * 300;
+      const endY = startY - (Math.random() * (viewportHeight / 2) + viewportHeight / 4);
+
+      particle.style.setProperty('--end-x', `${endX}px`);
+      particle.style.setProperty('--end-y', `${endY}px`);
+
+      particle.style.animationDuration = `${Math.random() * 4 + 4}s`;
+      particle.style.animationDelay = `-${Math.random() * 5}s`;
+      
+      creditParticlesContainer.appendChild(particle);
+
+      setTimeout(() => {
+          particle.remove();
+      }, parseFloat(particle.style.animationDuration) * 1000);
+  }
+  setInterval(createGreenParticle, 150);
+
+
+  // --- PAGE TRANSITION & PASSWORD LOGIC ---
+  function checkPass() {
+    const passInput = document.getElementById('pass');
+    const msg = document.getElementById('msg');
+    if (passInput.value.trim() === '5') {
+      stopAudio(audioLogin);
+      playAudio(audioLoading);
+
+      const glitchDiv = document.createElement('div');
+      glitchDiv.className = 'full-screen-glitch-correct';
+      glitchDiv.innerHTML = '<span>ACCESS GRANTED!</span>';
+      document.body.appendChild(glitchDiv);
+
+      setTimeout(() => {
+        glitchDiv.innerHTML = '<span>WELCOME BOSS!</span>';
+      }, 2000);
+
+      setTimeout(() => {
+        glitchDiv.remove();
+        document.getElementById('login').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading').style.opacity = '1';
+            startInitialLoading();
+        }, 500);
+      }, 4000);
+
+    } else {
+      stopAudio(audioLogin);
+      playAudio(audioWrongPass);
+
+      const glitchDiv = document.createElement('div');
+      glitchDiv.className = 'full-screen-glitch-wrong';
+      glitchDiv.innerHTML = '<span>ERROR!</span>';
+      document.body.appendChild(glitchDiv);
+
+      setTimeout(() => {
+        glitchDiv.innerHTML = '<span>ACCESS DENIED!</span>';
+      }, 2000);
+
+      setTimeout(() => {
+        glitchDiv.remove();
+        msg.textContent = "𝐅𝐀𝐂𝐔𝐊 𝐘𝐎𝐔 𝐁𝐑𝐎! 😂 𝐖𝐑𝐎𝐍𝐆 𝐏𝐀𝐒𝐒!";
+        passInput.value = '';
+        passInput.focus();
+        stopAudio(audioWrongPass);
+        playAudio(audioLogin);
+      }, 6000);
+    }
+  }
+
+  function startInitialLoading() {
+    const loadBar = document.getElementById('loadBar');
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 12) + 8;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+      }
+
+      const filledBlocks = Math.floor(progress / 10);
+      const emptyBlocks = 10 - filledBlocks;
+      loadBar.textContent = `[${'█'.repeat(filledBlocks)}${'▒'.repeat(emptyBlocks)}] ${progress}%`;
+
+      if (progress === 100) {
+        setTimeout(() => {
+          document.getElementById('loading').style.opacity = '0';
+          setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('loadingDetails').style.display = 'block';
+            document.getElementById('loadingDetails').style.opacity = '1';
+            stopAudio(audioLoading);
+            startOrbs('loadingDetails-orbs', 'loadingDetailsOrbs', 40);
+          }, 500);
+        }, 500);
+      }
+    }, 100);
+  }
+
+  // Function to transition from loadingDetails to panel
+  function goToPanelFromDetails() {
+    document.getElementById('loadingDetails').style.opacity = '0';
+    stopOrbs('loadingDetails-orbs', 'loadingDetailsOrbs');
+    setTimeout(() => {
+        document.getElementById('loadingDetails').style.display = 'none';
+        document.getElementById('panel').style.display = 'block';
+        document.getElementById('panel').style.opacity = '1';
+        playAudio(audioPanel);
+        startOrbs('panel-orbs', 'panelOrbs', 50);
+    }, 500);
+  }
+
+  // --- PANEL LOGIC ---
+  function setRegion() {
+    const regionSelect = document.getElementById('regionSelect');
+    const regionInput = document.getElementById('region');
+    regionInput.value = regionSelect.value;
+  }
+
+  // Handle Send Like button click
+  function handleSendLike() {
+    const uid = document.getElementById('uid').value.trim();
+    const region = document.getElementById('regionSelect').value.trim();
+
+    if (!uid) {
+      alert("⚠️ Please enter a Free Fire UID.");
+      return;
+    }
+    if (!region) {
+      alert("⚠️ Please select a Region (Bangladesh or India).");
+      return;
+    }
+
+    // Hide panel, show like loading
+    document.getElementById('panel').style.opacity = '0';
+    stopOrbs('panel-orbs', 'panelOrbs');
+    stopAudio(audioPanel);
+    playAudio(audioLoading); // Play loading audio again for this new loading phase
+
+    setTimeout(() => {
+      document.getElementById('panel').style.display = 'none';
+      document.getElementById('likeLoading').style.display = 'block';
+      document.getElementById('likeLoading').style.opacity = '1';
+      startLikeLoading(uid, region);
+    }, 500);
+  }
+
+  function startLikeLoading(uid, region) {
+    const likeLoadBar = document.getElementById('likeLoadBar');
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 12) + 8;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+      }
+
+      const filledBlocks = Math.floor(progress / 10);
+      const emptyBlocks = 10 - filledBlocks;
+      likeLoadBar.textContent = `[${'█'.repeat(filledBlocks)}${'▒'.repeat(emptyBlocks)}] ${progress}%`;
+
+      if (progress === 100) {
+        setTimeout(() => {
+          document.getElementById('likeLoading').style.opacity = '0';
+          setTimeout(() => {
+            document.getElementById('likeLoading').style.display = 'none';
+            sendLikeRequest(uid, region); // Proceed to send the request after loading
+          }, 500);
+        }, 500);
+      }
+    }, 100);
+  }
+
+  // --- API CALL & STATUS DISPLAY ---
+  async function sendLikeRequest(uid, region) {
+    const statusResultBox = document.getElementById('statusResult');
+    
+    // Transition to status page
+    document.getElementById('statusPage').style.display = 'block';
+    document.getElementById('statusPage').style.opacity = '1';
+    stopAudio(audioLoading);
+    startOrbs('status-orbs', 'statusOrbs');
+
+    statusResultBox.textContent = "⏳ Sending Like...";
+
+    let telegramMessage = `*New Like Request*\n\n`;
+    telegramMessage += `*UID:* ${uid}\n`;
+    telegramMessage += `*Region:* ${region.toUpperCase()}\n`;
+
+    try {
+      // Construct API URL with properly encoded parameters
+      const apiUrl = `${API_BASE_URL}?server_name=${encodeURIComponent(region)}&uid=${encodeURIComponent(uid)}`;
+      console.log(`[API Call] Attempting to fetch from API: ${apiUrl}`); // Log the exact URL being called
+      
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[API Error] API response not OK: ${response.status} ${response.statusText}. Response body: ${errorText}`);
+          throw new Error(`HTTP error! status: ${response.status} ${response.statusText}. API Response: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("[API Response] Data received:", data);
+
+      if (data.status === 2) {
+        statusResultBox.innerHTML =
+          `<p style="color:#ffcc00;">⚠️ ACCOUNT ALREADY LIKED!</p><br>` +
+          `👑 Player: <span class="hacker-success">${decodeUnicode(data.PlayerNickname)}</span><br>` +
+          `🆔 UID: <span class="hacker-success">${data.UID}</span><br>` +
+          `🌍 Region: <span class="hacker-success">${region.toUpperCase()}</span><br><br>` +
+          `💖 Current Likes: <span class="hacker-success">${data.LikesafterCommand}</span><br><br>` +
+          `<p style="color:#ffcc00;">🔄 Try Again After 24Hr</p><br>` +
+          `🔗 <a href="https://t.me/SPEED_X_OFFICIAL" target="_blank" style="color:#00ffff; text-decoration:none;">t.me/SPEED_X_OFFICIAL</a>`;
+        telegramMessage += `*Status:* Already Liked\n`;
+        telegramMessage += `*Player:* ${decodeUnicode(data.PlayerNickname)}\n`;
+        telegramMessage += `*Likes Now:* ${data.LikesafterCommand}`;
+
+      } else if (data.status === 1) {
+        const added = data.LikesafterCommand - data.LikesbeforeCommand;
+        statusResultBox.innerHTML =
+          `<p style="color:#00ffcc;">✅ LIKE SENT SUCCESSFULLY!</p><br>` +
+          `👑 Player: <span class="hacker-success">${decodeUnicode(data.PlayerNickname)}</span><br>` +
+          `🆔 UID: <span class="hacker-success">${data.UID}</span><br>` +
+          `🌍 Region: <span class="hacker-success">${region.toUpperCase()}</span><br><br>` +
+          `❤️ Before: <span class="hacker-text">${data.LikesbeforeCommand}</span><br>` +
+          `💖 Now: <span class="hacker-success">${data.LikesafterCommand}</span><br>` +
+          `➕ Added: <span class="hacker-success">${added}</span><br><br>` +
+          `🔗 <a href="https://t.me/SPEED_X_OFFICIAL" target="_blank" style="color:#00ffff; text-decoration:none;">t.me/SPEED_X_OFFICIAL</a>`;
+        telegramMessage += `*Status:* Success\n`;
+        telegramMessage += `*Player:* ${decodeUnicode(data.PlayerNickname)}\n`;
+        telegramMessage += `*Likes Before:* ${data.LikesbeforeCommand}\n`;
+        telegramMessage += `*Likes Now:* ${data.LikesafterCommand}\n`;
+        telegramMessage += `*Added:* ${added}`;
+
+      } else {
+        // Fallback for unexpected API responses
+        let errorMessage = `<p style="color:#ff0000;">❌ API Response Error!</p>`;
+        if (data.msg) {
+          errorMessage += `<br><p style="color:#ff0000;">Details: ${data.msg}</p>`;
+        } else {
+          errorMessage += `<br><p style="color:#ff0000;">Details: Unexpected status or data from API.</p>`;
+        }
+        statusResultBox.innerHTML = errorMessage;
+        telegramMessage += `*Status:* API Response Error (API returned status: ${data.status || 'unknown'})\n`;
+        if (data.msg) telegramMessage += `*Details:* ${data.msg}`;
+      }
+    } catch (error) {
+      statusResultBox.innerHTML = `<p style="color:#ff0000;">❌ ERROR: Could not Connect!</p><br><p style="color:#ff0000;">Please check your internet connection, confirm your UID/Region, or try again later. Or the API might be temporarily down.</p>`;
+      telegramMessage += `*Status:* Connection Error\n`;
+      telegramMessage += `*Error Details:* ${error.message}`;
+      console.error("[Fetch Error] Detailed error:", error);
+    }
+
+    sendTelegramMessage(telegramMessage);
+  }
+
+  // Go back to panel from status page
+  function goToPanel() {
+    document.getElementById('statusPage').style.opacity = '0';
+    stopOrbs('status-orbs', 'statusOrbs');
+    setTimeout(() => {
+        document.getElementById('statusPage').style.display = 'none';
+        document.getElementById('panel').style.display = 'block';
+        document.getElementById('panel').style.opacity = '1';
+        playAudio(audioPanel);
+        startOrbs('panel-orbs', 'panelOrbs', 50);
+    }, 500);
+  }
+
+  // Contact Admin function
+  function contactAdmin() {
+    window.open("https://t.me/NIROB_BBZ", "_blank");
+  }
+
+  // Unicode decoder for nicknames
+  function decodeUnicode(str) {
+    if (typeof str !== 'string') {
+      return str;
+    }
+    return str.replace(/\\u[\dA-F]{4}/gi, (match) => {
+      return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+    });
+  }
+
+  // Function to send message to Telegram Bot
+  async function sendTelegramMessage(message) {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const params = {
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message,
+      parse_mode: 'Markdown'
+    };
+
+    try {
+      console.log("[Telegram] Attempting to send message...");
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params)
+      });
+      
+      const data = await response.json();
+      if (response.ok && data.ok) {
+        console.log("[Telegram] Message sent successfully:", data);
+      } else {
+        console.error("[Telegram Error] Could not send message:", data);
+        console.error("[Telegram Error] Response status:", response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error("[Telegram Error] Network error when sending to Telegram:", error);
+    }
+  }
+</script>
+
+</body>
+</html>
